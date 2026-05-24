@@ -72,8 +72,8 @@ def demo_messages_placeholder():
 
     # Simulate conversation history
     history = [
-        HumanMessage(content="My name is Paulo"),
-        AIMessage(content="Nice to meet you, Paulo!"),
+        HumanMessage(content="My name is AO"),
+        AIMessage(content="Nice to meet you, AO!"),
     ]
 
     messages = prompt.format_messages(history=history, question="What's my name?")
