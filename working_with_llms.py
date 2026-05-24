@@ -1,0 +1,110 @@
+"""
+Working with LLMs in LangChain V.1
+Multiple providers, configuration, streaming and cost optimization.
+"""
+
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import SystemMessage, HumanMessage
+import os
+
+
+load_dotenv()
+
+
+def demo_init_chat_model():
+    if os.getenv("ANTHROPIC_API_KEY"):
+        claude = init_chat_model(
+            model_provider="anthropic",
+            model="claude-sonnet-4-5",
+            temperature=0.7,
+            streaming=True,
+            max_retries=3,
+        )
+
+        response = claude.invoke("What is capital of France?")
+        print(f"Response: {response.content}")
+
+        return claude
+
+def model_comparison():
+    prompt = "Explain recursion in one sentence"
+    
+    models = {
+        "gpt-4o-mini": init_chat_model(
+            model="gpt-4o-mini", 
+            temperature=0.7, 
+            streaming = False),
+        "gpt-4o": init_chat_model(
+            model="gpt-4o", 
+            temperature=0.7,
+            streaming = False),
+        }
+    if os.getenv("ANTHROPIC_API_KEY"):
+        models["claude-sonnet-4-5"] = init_chat_model(
+            model_provider="anthropic",
+            model="claude-sonnet-4-5",
+            temperature=0.7,
+            max_retries=3
+        )
+    
+    print(f"Prompt: {prompt}\n")
+    for model_name, model in models.items():
+        response = model.invoke(prompt)
+        print(f"{model_name} response: {response.content}\n")
+               
+def demo_message():
+    model = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+    
+    messages = [
+        SystemMessage(content="You are a pirate and always answer like a pirate."),
+        HumanMessage(content="What is the weather like today?"),
+        
+    ]
+    
+    print("Using message objects:")
+    print(f"Messages:{messages[0]} | {messages[1]}")
+
+    response = model.invoke(messages)
+    print(f"Response using message objects: {response.content}")
+    
+    # Multi-turn conversation
+    messages.append(response)
+    # print("Continued the conversation...")
+    messages.append(HumanMessage(content="How about tomorrow?"))
+    
+    print("\nMulti-turn conversation:")
+    response = model.invoke(messages)
+    print(f"Response to multi-turn conversation: {response.content}")
+    
+def exercise_multi_model():
+    """
+    EXERCISE: Create a function that:
+    1. Takes a question and a list of model names
+    2. Gets responses from all models
+    3. Returns a dict of {model_name: response}
+    
+    Test with: question = "What is AI?", models = [gpt-4o-mini, gpt-4o]
+    """
+        
+def get_responses(question: str, model_names: list[str]) -> dict[str, str]:
+    responses = {}
+    for model_name in model_names:
+        model = init_chat_model(
+            model = model_name,
+            temperature=0.7,
+            streaming = False ,
+        )
+        response = model.invoke(question)
+        responses[model_name] = response.content
+    return responses      
+
+        
+if __name__ == "__main__":  
+    # demo_init_chat_model()
+    # model_comparison()
+    # demo_message()
+    results = get_responses("What is AI?", ["gpt-4o-mini", "gpt-4o"])
+    for model, answer in results.items():
+        print(f"{model} response: {answer}\n")
