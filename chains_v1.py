@@ -147,10 +147,48 @@ def demo_branching_chain():
         print(f"Question: {question}")
         print(f"Answer: {result[:100]}....\n")
     
+
+def demo_debugging_chain():
+    """Demonstrate debugging techniques for chains."""
+    prompt = ChatPromptTemplate.from_template(
+        "Say hello to : {name}."
+    )
+    parser = StrOutputParser()
+    chain = prompt | model | parser
     
+    # Method 1 for debbugging: configuration to return intermediate outputs
+    print("Chain input schema: ", chain.input_schema.model_json_schema())
+    print("Chain output schema: ", chain.output_schema.model_json_schema())
+    
+    # Method 2: for debugging: Step through each comoponent 
+    result = chain.with_config(
+        run_name ="greeting_chain",
+    ).invoke({"name": "Alice"})
+    print(f"Greeting: {result}")
+    
+  # Method 3: Inspect itermeidate steps
+  # Using RunnableLabmda for Loggin
+  
+    def log_step(x, step_name=""):
+        print(f"[{step_name}] {type(x).__name__}: {str(x)[:100]}") 
+        return x
+    
+    debug_chain = (
+        prompt 
+        |RunnableLambda(lambda x: log_step(x, "after_prompt")) 
+        |model
+        |RunnableLambda(lambda x: log_step(x, "after_model"))
+        |StrOutputParser()
+    )
+    
+
+    print("\nDebug Chain Exectuion:")
+    result = debug_chain.invoke({"name": "Debugger"})
+    print(f"Greeting: {result}")
 
 if __name__ == "__main__":
     # demo_basic_chain()
    # demo_parallel_chain()
    # demo_passthrough_chain()
-   demo_branching_chain()
+   # demo_branching_chain()
+   demo_debugging_chain()
